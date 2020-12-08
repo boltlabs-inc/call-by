@@ -14,7 +14,7 @@
 //! into one trait, we can parameterize over the calling convention for the input value:
 //!
 //! ```
-//! use dialectic::{CallBy, CallingConvention};
+//! use call_by::{CallBy, CallingConvention};
 //!
 //! trait Sender<'a, T>
 //! where
