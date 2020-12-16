@@ -3,7 +3,5 @@ name = "call-by"
 version = "0.1.0"
 authors = ["Kenny Foner <kwf@boltlabs.io>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+description = "A trick to parameterize functions and traits by the calling convention of their arguments and results"
+license = "MIT"
