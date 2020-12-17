@@ -37,10 +37,21 @@
 /// by shared immutable [`Ref`]erence, and by unique [`Mut`]able reference.
 ///
 /// This is a sealed trait, implemented for all three of these conventions.
-pub trait CallingConvention: sealed::CallingConvention {}
-impl CallingConvention for Val {}
-impl CallingConvention for Ref {}
-impl CallingConvention for Mut {}
+pub trait CallingConvention: sealed::CallingConvention {
+    const TOKEN: Self;
+}
+
+impl CallingConvention for Val {
+    const TOKEN: Self = Val;
+}
+
+impl CallingConvention for Ref {
+    const TOKEN: Self = Ref;
+}
+
+impl CallingConvention for Mut {
+    const TOKEN: Self = Mut;
+}
 
 /// To get the type of `T` via calling convention `Convention`, write `<T as CallBy<'a,
 /// Convention>>::Type`.
