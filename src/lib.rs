@@ -98,7 +98,7 @@ impl<'a, T> By<'a, Val> for T {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Ref;
 
-impl<'a, T: 'a> By<'a, Ref> for T {
+impl<'a, T: 'a + ?Sized> By<'a, Ref> for T {
     type Type = &'a T;
 
     fn copy(this: Self::Type) -> Self
@@ -121,7 +121,7 @@ impl<'a, T: 'a> By<'a, Ref> for T {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Mut;
 
-impl<'a, T: 'a> By<'a, Mut> for T {
+impl<'a, T: 'a + ?Sized> By<'a, Mut> for T {
     type Type = &'a mut T;
 
     fn copy(this: Self::Type) -> Self
