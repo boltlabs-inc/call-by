@@ -267,6 +267,28 @@ where
     }
 }
 
+/// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
+/// Rust that `<T as By<'a, Val>>::Type` is `T`.
+pub fn coerce_move<'a, T: By<'a, Val>>(by_val: T::Type) -> T {
+    unsafe {
+        let val = ::std::ptr::read(&by_val as *const <T as By<'a, Val>>::Type as *const T);
+        ::std::mem::forget(by_val);
+        val
+    }
+}
+
+/// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
+/// Rust that `<T as By<'a, Ref>>::Type` is `&'a T`.
+pub fn coerce_ref<'a, T: By<'a, Ref>>(by_ref: T::Type) -> &'a T {
+    unsafe { ::std::ptr::read(&by_ref as *const <T as By<'a, Ref>>::Type as *const &'a T) }
+}
+
+/// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
+/// Rust that `<T as By<'a, Mut>>::Type` is `&'a mut T`.
+pub fn coerce_mut<'a, T: By<'a, Mut>>(by_mut: T::Type) -> &'a mut T {
+    unsafe { ::std::ptr::read(&by_mut as *const <T as By<'a, Mut>>::Type as *const &'a mut T) }
+}
+
 mod sealed {
     use super::*;
 
