@@ -1,6 +1,6 @@
 [package]
 name = "call-by"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Kenny Foner <kwf@boltlabs.io>"]
 edition = "2018"
 description = "A trick to parameterize functions and traits by the calling convention of their arguments and results"
