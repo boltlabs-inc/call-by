@@ -269,7 +269,7 @@ where
 
 /// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
 /// Rust that `<T as By<'a, Val>>::Type` is `T`.
-pub fn coerce_move<'a, T: By<'a, Val>>(by_val: T::Type) -> T {
+pub fn to_val<'a, T: By<'a, Val>>(by_val: T::Type) -> T {
     unsafe {
         let val = ::std::ptr::read(&by_val as *const <T as By<'a, Val>>::Type as *const T);
         ::std::mem::forget(by_val);
@@ -277,16 +277,32 @@ pub fn coerce_move<'a, T: By<'a, Val>>(by_val: T::Type) -> T {
     }
 }
 
+pub fn from_val<'a, T: By<'a, Val>>(by_val: T) -> T::Type {
+    unsafe {
+        let val = ::std::ptr::read(&by_val as *const T as *const <T as By<'a, Val>>::Type);
+        ::std::mem::forget(by_val);
+        val
+    }
+}
+
 /// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
 /// Rust that `<T as By<'a, Ref>>::Type` is `&'a T`.
-pub fn coerce_ref<'a, T: By<'a, Ref>>(by_ref: T::Type) -> &'a T {
+pub fn to_ref<'a, T: By<'a, Ref>>(by_ref: T::Type) -> &'a T {
     unsafe { ::std::ptr::read(&by_ref as *const <T as By<'a, Ref>>::Type as *const &'a T) }
+}
+
+pub fn from_ref<'a, T: By<'a, Ref>>(by_ref: &'a T) -> T::Type {
+    unsafe { ::std::ptr::read(&by_ref as *const &'a T as *const <T as By<'a, Ref>>::Type) }
 }
 
 /// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
 /// Rust that `<T as By<'a, Mut>>::Type` is `&'a mut T`.
-pub fn coerce_mut<'a, T: By<'a, Mut>>(by_mut: T::Type) -> &'a mut T {
+pub fn to_mut<'a, T: By<'a, Mut>>(by_mut: T::Type) -> &'a mut T {
     unsafe { ::std::ptr::read(&by_mut as *const <T as By<'a, Mut>>::Type as *const &'a mut T) }
+}
+
+pub fn from_mut<'a, T: By<'a, Mut>>(by_mut: &'a mut T) -> T::Type {
+    unsafe { ::std::ptr::read(&by_mut as *const &'a mut T as *const <T as By<'a, Mut>>::Type) }
 }
 
 mod sealed {
