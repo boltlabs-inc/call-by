@@ -34,6 +34,7 @@
 //! determines what type they need to pass as the argument to `send`, and type errors are reported
 //! in reference to that concrete type if it is known at the call site.
 //! <!-- snip -->
+use std::{mem, ptr};
 
 /// There are three fundamental ways to pass a `T` as input or return a `T` as output: by [`Val`]ue,
 /// by shared immutable [`Ref`]erence, and by unique [`Mut`]able reference.
@@ -267,42 +268,50 @@ where
     }
 }
 
-/// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
-/// Rust that `<T as By<'a, Val>>::Type` is `T`.
+/// Rust's type system does not always know that `<T as By<'a, Val>>::Type` is `T` for all `'a`.
+/// This function safely converts from the former to the latter (a zero-cost operation).
 pub fn to_val<'a, T: By<'a, Val>>(by_val: T::Type) -> T {
-    unsafe {
-        let val = ::std::ptr::read(&by_val as *const <T as By<'a, Val>>::Type as *const T);
-        ::std::mem::forget(by_val);
-        val
-    }
+    let ptr = &by_val as *const <T as By<'a, Val>>::Type as *const T;
+    let val = unsafe { ptr::read(ptr) };
+    mem::forget(by_val); // prevent double-free
+    val
 }
 
+/// Rust's type system does not always know that `T` is `<T as By<'a, Val>>::Type` for all `'a`.
+/// This function safely converts from the former to the latter (a zero-cost operation).
 pub fn from_val<'a, T: By<'a, Val>>(by_val: T) -> T::Type {
-    unsafe {
-        let val = ::std::ptr::read(&by_val as *const T as *const <T as By<'a, Val>>::Type);
-        ::std::mem::forget(by_val);
-        val
-    }
+    let ptr = &by_val as *const T as *const <T as By<'a, Val>>::Type;
+    let val = unsafe { ptr::read(ptr) };
+    mem::forget(by_val); // prevent double-free
+    val
 }
 
-/// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
-/// Rust that `<T as By<'a, Ref>>::Type` is `&'a T`.
+/// Rust's type system does not always know that `<T as By<'a, Ref>>::Type` is `&'a T` for all `'a`.
+/// This function safely converts from the former to the latter (a zero-cost operation).
 pub fn to_ref<'a, T: By<'a, Ref>>(by_ref: T::Type) -> &'a T {
-    unsafe { ::std::ptr::read(&by_ref as *const <T as By<'a, Ref>>::Type as *const &'a T) }
+    let ptr = &by_ref as *const <T as By<'a, Ref>>::Type as *const &'a T;
+    unsafe { ptr::read(ptr) }
 }
 
+/// Rust's type system does not always know that `&'a T` is `<T as By<'a, Ref>>::Type` for all `'a`.
+/// This function safely converts from the former to the latter (a zero-cost operation).
 pub fn from_ref<'a, T: By<'a, Ref>>(by_ref: &'a T) -> T::Type {
-    unsafe { ::std::ptr::read(&by_ref as *const &'a T as *const <T as By<'a, Ref>>::Type) }
+    let ptr = &by_ref as *const &'a T as *const <T as By<'a, Ref>>::Type;
+    unsafe { ptr::read(ptr) }
 }
 
-/// Sometimes, Rust can't see through the lifetime. You can use this function to safely convince
-/// Rust that `<T as By<'a, Mut>>::Type` is `&'a mut T`.
+/// Rust's type system does not always know that `<T as By<'a, Mut>>::Type` is `&'a mut T` for all
+/// `'a`. This function safely converts from the former to the latter (a zero-cost operation).
 pub fn to_mut<'a, T: By<'a, Mut>>(by_mut: T::Type) -> &'a mut T {
-    unsafe { ::std::ptr::read(&by_mut as *const <T as By<'a, Mut>>::Type as *const &'a mut T) }
+    let ptr = &by_mut as *const <T as By<'a, Mut>>::Type as *const &'a mut T;
+    unsafe { ptr::read(ptr) }
 }
 
+/// Rust's type system does not always know that `&'a mut T` is `<T as By<'a, Mut>>::Type` for all
+/// `'a`. This function safely converts from the former to the latter (a zero-cost operation).
 pub fn from_mut<'a, T: By<'a, Mut>>(by_mut: &'a mut T) -> T::Type {
-    unsafe { ::std::ptr::read(&by_mut as *const &'a mut T as *const <T as By<'a, Mut>>::Type) }
+    let ptr = &by_mut as *const &'a mut T as *const <T as By<'a, Mut>>::Type;
+    unsafe { ptr::read(ptr) }
 }
 
 mod sealed {
